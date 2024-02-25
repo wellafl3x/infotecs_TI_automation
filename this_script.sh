@@ -2,11 +2,8 @@
 # Automation solution for analyzing PCAp files with Zeek and RITA frameworks.
 # Written by wellafl3x.
 
-# Troubles
-# RITA make double reports
-
 #========CONST_VARS========
-if [[ ! -z ${PATH_TO} ]] && [ -d $PATH_TO ]; then # check if other path defined
+if [[ ! -z ${PATH_TO} ]] && [ -d "$PATH_TO" ]; then # check if other path defined
     ROOTDIR="${PATH_TO}"
 else
     ROOTDIR=$HOME
@@ -18,7 +15,6 @@ NGINX_DIR=/var/www/html
 INSTALL_ZEEK=true
 INSTALL_MONGO=true
 INSTALL_RITA=true
-DB_BAN=('/' '\' '.' '"' '*' '<' '>' ':' '|' '?' '$' )
 #==========================
 
 #========FUNCTIONS========
@@ -319,6 +315,7 @@ __rita_analyze () {
         rita import $dir $db_name
         rita html-report $db_name
         cp -r $RITA_DIR/$db_name $NGINX_DIR
+        rm -r $dir
         line="10 a <a href="
         line+='"'
         line+="/$db_name/$db_name/index.html"
@@ -367,6 +364,7 @@ __nginx_conf () {
         rm /etc/nginx/conf.d/rita.conf
     fi
     touch /etc/nginx/conf.d/rita.conf
+    # shellcheck disable=SC2016
     echo '
         server {
         listen 80 default_server;
