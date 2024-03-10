@@ -12,7 +12,7 @@ if [[ ! -z ${WHITELIST} ]] && [ -f "$WHITELIST" ]; then # check if other path de
     WHITELIST_FILE="${WHITELIST}"
     CHANGE_CONFIG=true
 else
-    echo "THIS FILE DOESNT EXISTS. NO WHITELIST HAS BEEN MODIFY. CTRL + C to abort..."
+    echo "NO WHITELIST HAS BEEN MODIFY. PROBABLY, WHITELIST FILE DOESNT EXISTS CTRL + C to abort..."
     sleep 5
     CHANGE_CONFIG=false
 fi
@@ -543,7 +543,9 @@ inotifywait \
   -e moved_to \
   --include "\.pcap" \
 | while read -r dir act fil; do
+    sleep 10
     __zeek_analyze
+    sleep 10
     __rita_analyze
 done
 #==================================
