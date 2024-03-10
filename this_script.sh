@@ -8,6 +8,14 @@ if [[ ! -z ${PATH_TO} ]] && [ -d "$PATH_TO" ]; then # check if other path define
 else
     ROOTDIR=$HOME
 fi
+if [[ ! -z ${WHITELIST} ]] && [ -f "$WHITELIST" ]; then # check if other path defined
+    WHITELIST_FILE="${WHITELIST}"
+    CHANGE_CONFIG=true
+else
+    echo "THIS FILE DOESNT EXISTS. NO WHITELIST HAS BEEN MODIFY. CTRL + C to abort..."
+    sleep 5
+    CHANGE_CONFIG=false
+fi
 PCAP_DIR="$ROOTDIR"/PCAPS
 ZEEK_DIR=/tmp/ZEEK
 RITA_DIR="$ROOTDIR"/REPORTS
@@ -25,6 +33,7 @@ __help () {
     echo "This script provides automatic report generation from pcap files thru Zeek and RITA frameworks."
     echo "PCAPS and REPORTS directories will be created in HOME directory (by default, so /root)."
     echo "If you want to change default dirs location, define PATH_TO variable before start this script."
+    echo "Define WHITELIST variable to choose whitelist file."
     echo "For Ex.: PATH_TO=/home/user WHITELIST=/home/user/whitelist.txt ./this_script.sh"
     echo ""
     echo "Put your .pcap files into PCAP folder, then in REPORTS dir will generated RITA reports "
@@ -378,6 +387,101 @@ __nginx_conf () {
     ' >> /etc/nginx/conf.d/rita.conf
     nginx -s reload
 }
+
+__whitelist () {
+    cat > /etc/rita/config.yaml << EOF
+    MongoDB:
+      ConnectionString: mongodb://localhost:27017
+      AuthenticationMechanism: null
+      SocketTimeout: 2
+      TLS:
+        Enable: false
+        VerifyCertificate: false
+        CAFile: null
+      MetaDB: MetaDatabase
+    Rolling:
+      DefaultChunks: 24
+    LogConfig:
+      LogLevel: 2
+      RitaLogPath: /var/lib/rita/logs
+      LogToFile: true
+      LogToDB: true
+    UserConfig:
+      UpdateCheckFrequency: 14
+    Filtering:
+      AlwaysInclude: []
+      NeverInclude:
+        - 0.0.0.0/32
+        - 127.0.0.0/8
+        - 169.254.0.0/16
+        - 224.0.0.0/4
+        - 255.255.255.255/32
+        - ::1/128
+        - fe80::/10
+        - ff00::/8
+EOF
+    cat $WHITELIST_FILE >> /etc/rita/config.yaml 
+    cat > /etc/rita/config.yaml << EOF
+      InternalSubnets:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+      AlwaysIncludeDomain: []
+      NeverIncludeDomain: []
+      FilterExternalToInternal: true
+    BlackListed:
+      Enabled: true
+      feodotracker.abuse.ch: true
+      BlacklistDatabase: "rita-bl"
+      CustomIPBlacklBlacklists: []
+    Beacon:
+      Enabled: true
+      DefaultConnectionThresh: 23
+      TimestampScoreWeight: 0.25
+      DatasizeScoreWeight: 0.25
+      DurationScoreWeight: 0.25
+      HistogramScoreWeight: 0.25
+      DurationMinHoursSeen: 6
+      DurationConsistencyIdealHoursSeen: 12
+      HistogramBimodalBucketSize: 0.05
+      HistogramBimodalOutlierRemoval: 1
+      HistogramBimodalMinHoursSeen: 11
+
+    BeaconSNI:
+      Enabled: true
+      DefaultConnectionThresh: 23
+      TimestampScoreWeight: 0.25
+      DatasizeScoreWeight: 0.25
+      DurationScoreWeight: 0.25
+      HistogramScoreWeight: 0.25
+      DurationMinHoursSeen: 6
+      DurationConsistencyIdealHoursSeen: 12
+      HistogramBimodalBucketSize: 0.05
+      HistogramBimodalOutlierRemoval: 1
+      HistogramBimodalMinHoursSeen: 11
+
+    BeaconProxy:
+      Enabled: true
+      DefaultConnectionThresh: 23
+      TimestampScoreWeight: 0.333
+      DurationScoreWeight: 0.333
+      HistogramScoreWeight: 0.333
+      DurationMinHoursSeen: 6
+      DurationConsistencyIdealHoursSeen: 12
+      HistogramBimodalBucketSize: 0.05
+      HistogramBimodalOutlierRemoval: 1
+      HistogramBimodalMinHoursSeen: 11
+      
+    DNS:
+      Enabled: true
+
+    UserAgent:
+      Enabled: true
+
+    Strobe:
+      ConnectionLimit: 86400
+EOF
+}
 #=========================
 
 #==========MAIN BODY==========
@@ -427,6 +531,9 @@ if [ "$INSTALL_RITA" = "true" ]; then
     __rita_install
 fi
 sleep 3
+if [ "$CHANGE_CONFIG" = "true" ]; then
+    __whitelist
+fi
 fortune | cowsay
 inotifywait \
   "$PCAP_DIR" \
