@@ -389,98 +389,99 @@ __nginx_conf () {
 }
 
 __whitelist () {
-    cat > /etc/rita/config.yaml << EOF
-    MongoDB:
-      ConnectionString: mongodb://localhost:27017
-      AuthenticationMechanism: null
-      SocketTimeout: 2
-      TLS:
-        Enable: false
-        VerifyCertificate: false
-        CAFile: null
-      MetaDB: MetaDatabase
-    Rolling:
-      DefaultChunks: 24
-    LogConfig:
-      LogLevel: 2
-      RitaLogPath: /var/lib/rita/logs
-      LogToFile: true
-      LogToDB: true
-    UserConfig:
-      UpdateCheckFrequency: 14
-    Filtering:
-      AlwaysInclude: []
-      NeverInclude:
-        - 0.0.0.0/32
-        - 127.0.0.0/8
-        - 169.254.0.0/16
-        - 224.0.0.0/4
-        - 255.255.255.255/32
-        - ::1/128
-        - fe80::/10
-        - ff00::/8
-EOF
-    cat $WHITELIST_FILE >> /etc/rita/config.yaml 
-    cat > /etc/rita/config.yaml << EOF
-      InternalSubnets:
-        - 10.0.0.0/8
-        - 172.16.0.0/12
-        - 192.168.0.0/16
-      AlwaysIncludeDomain: []
-      NeverIncludeDomain: []
-      FilterExternalToInternal: true
-    BlackListed:
-      Enabled: true
-      feodotracker.abuse.ch: true
-      BlacklistDatabase: "rita-bl"
-      CustomIPBlacklBlacklists: []
-    Beacon:
-      Enabled: true
-      DefaultConnectionThresh: 23
-      TimestampScoreWeight: 0.25
-      DatasizeScoreWeight: 0.25
-      DurationScoreWeight: 0.25
-      HistogramScoreWeight: 0.25
-      DurationMinHoursSeen: 6
-      DurationConsistencyIdealHoursSeen: 12
-      HistogramBimodalBucketSize: 0.05
-      HistogramBimodalOutlierRemoval: 1
-      HistogramBimodalMinHoursSeen: 11
+    rm /etc/rita/config.yaml
+    echo "
+MongoDB:
+  ConnectionString: mongodb://localhost:27017
+  AuthenticationMechanism: null
+  SocketTimeout: 2
+  TLS:
+    Enable: false
+    VerifyCertificate: false
+    CAFile: null
+  MetaDB: MetaDatabase
+Rolling:
+  DefaultChunks: 24
+LogConfig:
+  LogLevel: 2
+  RitaLogPath: /var/lib/rita/logs
+  LogToFile: true
+  LogToDB: true
+UserConfig:
+  UpdateCheckFrequency: 14
+Filtering:
+  AlwaysInclude: []
+  NeverInclude:
+    - 0.0.0.0/32
+    - 127.0.0.0/8
+    - 169.254.0.0/16
+    - 224.0.0.0/4
+    - 255.255.255.255/32
+    - ::1/128
+    - fe80::/10
+    - ff00::/8" >> /etc/rita/config.yaml
+    sleep 2
+    cat $WHITELIST_FILE >> /etc/rita/config.yaml
+    sleep 2 
+    echo "
+  InternalSubnets:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+  AlwaysIncludeDomain: []
+  NeverIncludeDomain: []
+  FilterExternalToInternal: true
+BlackListed:
+  Enabled: true
+  feodotracker.abuse.ch: true
+  BlacklistDatabase: "rita-bl"
+  CustomIPBlacklBlacklists: []
+Beacon:
+  Enabled: true
+  DefaultConnectionThresh: 23
+  TimestampScoreWeight: 0.25
+  DatasizeScoreWeight: 0.25
+  DurationScoreWeight: 0.25
+  HistogramScoreWeight: 0.25
+  DurationMinHoursSeen: 6
+  DurationConsistencyIdealHoursSeen: 12
+  HistogramBimodalBucketSize: 0.05
+  HistogramBimodalOutlierRemoval: 1
+  HistogramBimodalMinHoursSeen: 11
 
-    BeaconSNI:
-      Enabled: true
-      DefaultConnectionThresh: 23
-      TimestampScoreWeight: 0.25
-      DatasizeScoreWeight: 0.25
-      DurationScoreWeight: 0.25
-      HistogramScoreWeight: 0.25
-      DurationMinHoursSeen: 6
-      DurationConsistencyIdealHoursSeen: 12
-      HistogramBimodalBucketSize: 0.05
-      HistogramBimodalOutlierRemoval: 1
-      HistogramBimodalMinHoursSeen: 11
+BeaconSNI:
+  Enabled: true
+  DefaultConnectionThresh: 23
+  TimestampScoreWeight: 0.25
+  DatasizeScoreWeight: 0.25
+  DurationScoreWeight: 0.25
+  HistogramScoreWeight: 0.25
+  DurationMinHoursSeen: 6
+  DurationConsistencyIdealHoursSeen: 12
+  HistogramBimodalBucketSize: 0.05
+  HistogramBimodalOutlierRemoval: 1
+  HistogramBimodalMinHoursSeen: 11
 
-    BeaconProxy:
-      Enabled: true
-      DefaultConnectionThresh: 23
-      TimestampScoreWeight: 0.333
-      DurationScoreWeight: 0.333
-      HistogramScoreWeight: 0.333
-      DurationMinHoursSeen: 6
-      DurationConsistencyIdealHoursSeen: 12
-      HistogramBimodalBucketSize: 0.05
-      HistogramBimodalOutlierRemoval: 1
-      HistogramBimodalMinHoursSeen: 11
+BeaconProxy:
+  Enabled: true
+  DefaultConnectionThresh: 23
+  TimestampScoreWeight: 0.333
+  DurationScoreWeight: 0.333
+  HistogramScoreWeight: 0.333
+  DurationMinHoursSeen: 6
+  DurationConsistencyIdealHoursSeen: 12
+  HistogramBimodalBucketSize: 0.05
+  HistogramBimodalOutlierRemoval: 1
+  HistogramBimodalMinHoursSeen: 11
       
-    DNS:
-      Enabled: true
+DNS:
+  Enabled: true
 
-    UserAgent:
-      Enabled: true
+UserAgent:
+  Enabled: true
 
-    Strobe:
-      ConnectionLimit: 86400
-EOF
+Strobe:
+  ConnectionLimit: 86400" >> /etc/rita/config.yaml
 }
 #=========================
 
