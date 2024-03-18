@@ -327,7 +327,7 @@ __rita_analyze () {
         rm -r $dir
         line="10 a <a href="
         line+='"'
-        line+="/$db_name/$db_name/index.html"
+        line+="./$db_name/$db_name/index.html"
         line+='"'
         line+=">$db_name"
         line+='</a>"'
@@ -539,13 +539,12 @@ fortune | cowsay
 inotifywait \
   "$PCAP_DIR" \
   --monitor \
-  -e create \
   -e moved_to \
   --include "\.pcap" \
 | while read -r dir act fil; do
-    sleep 10
+    #sleep 10
     __zeek_analyze
-    sleep 10
+    #sleep 10
     __rita_analyze
 done
 #==================================
