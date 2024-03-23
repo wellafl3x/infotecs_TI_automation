@@ -16,7 +16,7 @@ else
     sleep 5
     CHANGE_CONFIG=false
 fi
-PCAP_DIR="$ROOTDIR"/PCAPS
+PCAP_DIR="$ROOTDIR"/PCAPS   
 ZEEK_DIR=/tmp/ZEEK
 RITA_DIR="$ROOTDIR"/REPORTS
 NGINX_DIR=/var/www/html
@@ -55,7 +55,7 @@ __help () {
 
 __check_for_root () {
 
-    if [ "$EUID" -ne 0 ]
+    if [ "$EUID" -ne 0 ]  
         then echo "[ERROR]: Couldn't start script. Are you root?"
         exit
     fi
@@ -127,7 +127,7 @@ __create_dirs () {
     color: #000;
     font-family: 'Lato', sans-serif;
     font-size: 32px;
-    font-weight: 300;
+    font-weight: 300; 
     line-height: 58px;
     margin: 0 0 58px;
     text-indent: 30px;
@@ -319,19 +319,21 @@ __zeek_analyze () {
 __rita_analyze () {
     cd $RITA_DIR
     for dir in $ZEEK_DIR/*/; do ##
-        dir_name="$(basename ${dir})"
-        db_name="${dir_name%.*}"
-        rita import $dir $db_name
-        rita html-report $db_name
-        cp -r $RITA_DIR/$db_name $NGINX_DIR
-        rm -r $dir
-        line="10 a <a href="
-        line+='"'
-        line+="./$db_name/$db_name/index.html"
-        line+='"'
-        line+=">$db_name"
-        line+='</a>"'
-        sed -i "$line" $NGINX_DIR/index.html
+        if [ ! -z "$(ls -A $ZEEK_DIR)" ]; then
+          dir_name="$(basename ${dir})"
+          db_name="${dir_name%.*}"
+          rita import $dir $db_name
+          rita html-report $db_name
+          cp -r $RITA_DIR/$db_name $NGINX_DIR
+          rm -r $dir
+          line="10 a <a href="
+          line+='"'
+          line+="./$db_name/$db_name/index.html"
+          line+='"'
+          line+=">$db_name"
+          line+='</a>"'
+          sed -i "$line" $NGINX_DIR/index.html
+        fi
     done
 }
 
