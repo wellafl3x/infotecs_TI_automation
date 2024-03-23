@@ -8,15 +8,7 @@ if [[ ! -z ${PATH_TO} ]] && [ -d "$PATH_TO" ]; then # check if other path define
 else
     ROOTDIR=$HOME
 fi
-if [[ ! -z ${WHITELIST} ]] && [ -f "$WHITELIST" ]; then # check if other path defined
-    WHITELIST_FILE="${WHITELIST}"
-    CHANGE_CONFIG=true
-else
-    echo "NO WHITELIST HAS BEEN MODIFY. PROBABLY, WHITELIST FILE DOESNT EXISTS CTRL + C to abort..."
-    sleep 5
-    CHANGE_CONFIG=false
-fi
-PCAP_DIR="$ROOTDIR"/PCAPS   
+PCAP_DIR="$ROOTDIR"/PCAPS
 ZEEK_DIR=/tmp/ZEEK
 RITA_DIR="$ROOTDIR"/REPORTS
 NGINX_DIR=/var/www/html
@@ -55,7 +47,7 @@ __help () {
 
 __check_for_root () {
 
-    if [ "$EUID" -ne 0 ]  
+    if [ "$EUID" -ne 0 ]
         then echo "[ERROR]: Couldn't start script. Are you root?"
         exit
     fi
@@ -127,7 +119,7 @@ __create_dirs () {
     color: #000;
     font-family: 'Lato', sans-serif;
     font-size: 32px;
-    font-weight: 300; 
+    font-weight: 300;
     line-height: 58px;
     margin: 0 0 58px;
     text-indent: 30px;
@@ -519,7 +511,16 @@ while [[ $# -gt 0 ]]; do
     done
 __check_for_root
 __zastavka
-echo "Dirs will be located at $ROOTDIR. Ctrl+C to abort..."
+if [[ ! -z ${WHITELIST} ]] && [ -f "$WHITELIST" ]; then # check if other path defined
+    WHITELIST_FILE="${WHITELIST}"
+    CHANGE_CONFIG=true
+    echo "Whitelist = $WHITELIST_FILE"
+else
+    echo "Whitelist = none."
+    CHANGE_CONFIG=false
+fi
+echo "Dirs will be located at $ROOTDIR. Ctrl+C to abort..." 
+
 sleep 5
 __dep_install
 __create_dirs
@@ -541,12 +542,11 @@ fortune | cowsay
 inotifywait \
   "$PCAP_DIR" \
   --monitor \
+  -e create \
   -e moved_to \
   --include "\.pcap" \
 | while read -r dir act fil; do
-    #sleep 10
     __zeek_analyze
-    #sleep 10
     __rita_analyze
 done
 #==================================
