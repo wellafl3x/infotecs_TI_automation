@@ -25,6 +25,7 @@ __help () {
     echo "This script provides automatic report generation from pcap files thru Zeek and RITA frameworks."
     echo "PCAPS and REPORTS directories will be created in HOME directory (by default, so /root)."
     echo "If you want to change default dirs location, define PATH_TO variable before start this script."
+    echo "Define WHITELIST variable to choose whitelist file."
     echo "For Ex.: PATH_TO=/home/user WHITELIST=/home/user/whitelist.txt ./this_script.sh"
     echo ""
     echo "Put your .pcap files into PCAP folder, then in REPORTS dir will generated RITA reports "
@@ -310,19 +311,21 @@ __zeek_analyze () {
 __rita_analyze () {
     cd $RITA_DIR
     for dir in $ZEEK_DIR/*/; do ##
-        dir_name="$(basename ${dir})"
-        db_name="${dir_name%.*}"
-        rita import $dir $db_name
-        rita html-report $db_name
-        cp -r $RITA_DIR/$db_name $NGINX_DIR
-        rm -r $dir
-        line="10 a <a href="
-        line+='"'
-        line+="/$db_name/$db_name/index.html"
-        line+='"'
-        line+=">$db_name"
-        line+='</a>"'
-        sed -i "$line" $NGINX_DIR/index.html
+        if [ ! -z "$(ls -A $ZEEK_DIR)" ]; then
+          dir_name="$(basename ${dir})"
+          db_name="${dir_name%.*}"
+          rita import $dir $db_name
+          rita html-report $db_name
+          cp -r $RITA_DIR/$db_name $NGINX_DIR
+          rm -r $dir
+          line="10 a <a href="
+          line+='"'
+          line+="./$db_name/$db_name/index.html"
+          line+='"'
+          line+=">$db_name"
+          line+='</a>"'
+          sed -i "$line" $NGINX_DIR/index.html
+        fi
     done
 }
 
@@ -378,6 +381,102 @@ __nginx_conf () {
     ' >> /etc/nginx/conf.d/rita.conf
     nginx -s reload
 }
+
+__whitelist () {
+    rm /etc/rita/config.yaml
+    echo "
+MongoDB:
+  ConnectionString: mongodb://localhost:27017
+  AuthenticationMechanism: null
+  SocketTimeout: 2
+  TLS:
+    Enable: false
+    VerifyCertificate: false
+    CAFile: null
+  MetaDB: MetaDatabase
+Rolling:
+  DefaultChunks: 24
+LogConfig:
+  LogLevel: 2
+  RitaLogPath: /var/lib/rita/logs
+  LogToFile: true
+  LogToDB: true
+UserConfig:
+  UpdateCheckFrequency: 14
+Filtering:
+  AlwaysInclude: []
+  NeverInclude:
+    - 0.0.0.0/32
+    - 127.0.0.0/8
+    - 169.254.0.0/16
+    - 224.0.0.0/4
+    - 255.255.255.255/32
+    - ::1/128
+    - fe80::/10
+    - ff00::/8" >> /etc/rita/config.yaml
+    sleep 2
+    cat $WHITELIST_FILE >> /etc/rita/config.yaml
+    sleep 2 
+    echo "
+  InternalSubnets:
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+  AlwaysIncludeDomain: []
+  NeverIncludeDomain: []
+  FilterExternalToInternal: true
+BlackListed:
+  Enabled: true
+  feodotracker.abuse.ch: true
+  BlacklistDatabase: "rita-bl"
+  CustomIPBlacklBlacklists: []
+Beacon:
+  Enabled: true
+  DefaultConnectionThresh: 23
+  TimestampScoreWeight: 0.25
+  DatasizeScoreWeight: 0.25
+  DurationScoreWeight: 0.25
+  HistogramScoreWeight: 0.25
+  DurationMinHoursSeen: 6
+  DurationConsistencyIdealHoursSeen: 12
+  HistogramBimodalBucketSize: 0.05
+  HistogramBimodalOutlierRemoval: 1
+  HistogramBimodalMinHoursSeen: 11
+
+BeaconSNI:
+  Enabled: true
+  DefaultConnectionThresh: 23
+  TimestampScoreWeight: 0.25
+  DatasizeScoreWeight: 0.25
+  DurationScoreWeight: 0.25
+  HistogramScoreWeight: 0.25
+  DurationMinHoursSeen: 6
+  DurationConsistencyIdealHoursSeen: 12
+  HistogramBimodalBucketSize: 0.05
+  HistogramBimodalOutlierRemoval: 1
+  HistogramBimodalMinHoursSeen: 11
+
+BeaconProxy:
+  Enabled: true
+  DefaultConnectionThresh: 23
+  TimestampScoreWeight: 0.333
+  DurationScoreWeight: 0.333
+  HistogramScoreWeight: 0.333
+  DurationMinHoursSeen: 6
+  DurationConsistencyIdealHoursSeen: 12
+  HistogramBimodalBucketSize: 0.05
+  HistogramBimodalOutlierRemoval: 1
+  HistogramBimodalMinHoursSeen: 11
+      
+DNS:
+  Enabled: true
+
+UserAgent:
+  Enabled: true
+
+Strobe:
+  ConnectionLimit: 86400" >> /etc/rita/config.yaml
+}
 #=========================
 
 #==========MAIN BODY==========
@@ -412,7 +511,16 @@ while [[ $# -gt 0 ]]; do
     done
 __check_for_root
 __zastavka
-echo "Dirs will be located at $ROOTDIR. Ctrl+C to abort..."
+if [[ ! -z ${WHITELIST} ]] && [ -f "$WHITELIST" ]; then # check if other path defined
+    WHITELIST_FILE="${WHITELIST}"
+    CHANGE_CONFIG=true
+    echo "Whitelist = $WHITELIST_FILE"
+else
+    echo "Whitelist = none."
+    CHANGE_CONFIG=false
+fi
+echo "Dirs will be located at $ROOTDIR. Ctrl+C to abort..." 
+
 sleep 5
 __dep_install
 __create_dirs
@@ -427,6 +535,9 @@ if [ "$INSTALL_RITA" = "true" ]; then
     __rita_install
 fi
 sleep 3
+if [ "$CHANGE_CONFIG" = "true" ]; then
+    __whitelist
+fi
 fortune | cowsay
 inotifywait \
   "$PCAP_DIR" \
