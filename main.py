@@ -84,7 +84,7 @@ for x in asn:
         pass
 
 with open('domains.txt', 'a') as f:
-    f.writelines(f"{item}\n" for item in domains)
+    f.writelines(f"    - {item}\n" for item in domains)
 domains.clear()
 
 with open('results.txt', 'a') as f:
