@@ -3,8 +3,9 @@ import requests
 import socket
 import ipaddress
 import urllib.request
-from lxml import html
 from bs4 import BeautifulSoup
+from ipwhois.net import Net
+from ipwhois.asn import IPASN
 
 url = "https://raw.githubusercontent.com/AdguardTeam/AdGuardHome/master/client/src/helpers/trackers/trackers.json"
 with urllib.request.urlopen(url) as urls:
@@ -17,7 +18,7 @@ ag_list.clear()
 # Извлечение записей
 records = []
 for x in trackers:
-    if trackers[x]["categoryId"] == 9:
+    if trackers[x]["categoryId"] == 9 or trackers[x]["categoryId"] == 7 or trackers[x]["categoryId"] == 6:
         if trackers[x]["companyId"] is None:
             records.append(x)
         else:
@@ -41,39 +42,52 @@ ip = []
 for x in domains:
     try:
         host = socket.gethostbyname(x)
+        if not ipaddress.ip_address(host).is_private:
+            ip.append(host)
     except:
         pass
-    if not ipaddress.ip_address(host).is_private:
-        ip.append(host)
-domains.clear()
 print("Получено "+str(len(ip))+" IP-адресов")
 
 # Запрос ASN для IP-адресов
 asn = []
-session = requests.Session()
 for x in ip:
-    url = "https://bgp.he.net/ip/"+x
-    response = session.get(url)
-    asnum = html.fromstring(response.text)
-    result = asnum.xpath("/html/body/div/div[2]/div[2]/div[2]/table/tbody/tr/td[1]/a")
-    asn.append(result[0].text)
+    net = Net(x)
+    obj = IPASN(net)
+    result = obj.lookup()
+    if " " in result["asn"]:
+        tmp = result["asn"].split()
+        asn.extend(tmp)
+    if result["asn"] != "NA":
+        asn.append(result["asn"])
 # Удаление дубликатов
 asn = list(set(asn))
 ip.clear()
 print("IP-адресам соответствует "+str(len(asn))+" автономных систем")
 
 # Получение пулов IP для каждой ASN
-f = open("results.txt", "a")
 cnt = 0
+session = requests.Session()
+subnet_all = []
 for x in asn:
-    url = "https://bgp.he.net/"+x+"#_prefixes"
+    url = "https://bgp.he.net/AS"+x+"#_prefixes"
     page = session.get(url).text
     soup = BeautifulSoup(page, "html.parser")
-    table = soup.find("table", {"id":"table_prefixes4"})
-    for row in table.findAll("tr"):
-        columns = row.findAll("td")
-        if len(columns) > 0:
-            pool = columns[0].get_text().strip()
-            f.write("   - "+pool+"\n")
-            cnt += 1
+    try:
+        table = soup.find("table", {"id":"table_prefixes4"})
+        for row in table.findAll("tr"):
+            columns = row.findAll("td")
+            if len(columns) > 0:
+                pool = columns[0].get_text().strip()
+                cnt += 1
+                subnet_all.append(pool)
+    except:
+        pass
+
+with open('domains.txt', 'a') as f:
+    f.writelines(f"{item}\n" for item in domains)
+domains.clear()
+
+with open('results.txt', 'a') as f:
+    f.writelines(f"    - {item}\n" for item in subnet_all)
+subnet_all.clear()
 print("В файл results.txt записано "+str(cnt)+" строк.")
