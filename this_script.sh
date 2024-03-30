@@ -25,8 +25,8 @@ __help () {
     echo "This script provides automatic report generation from pcap files thru Zeek and RITA frameworks."
     echo "PCAPS and REPORTS directories will be created in HOME directory (by default, so /root)."
     echo "If you want to change default dirs location, define PATH_TO variable before start this script."
-    echo "Define WHITELIST variable to choose whitelist file."
-    echo "For Ex.: PATH_TO=/home/user WHITELIST=/home/user/whitelist.txt ./this_script.sh"
+    echo "Define WHITELIST variable to choose whitelist file, DOMAINS variable to choose domains whitelist file."
+    echo "For Ex.: PATH_TO=/home/user WHITELIST=/home/user/results.txt DOMAINS=/home/user/domains.txt ./this_script.sh"
     echo ""
     echo "Put your .pcap files into PCAP folder, then in REPORTS dir will generated RITA reports "
     echo "and your files moved. Do not delete PCAP and REPORTS dirs, it will ruin work of script."
@@ -423,7 +423,15 @@ Filtering:
     - 172.16.0.0/12
     - 192.168.0.0/16
   AlwaysIncludeDomain: []
-  NeverIncludeDomain: []
+  NeverIncludeDomain:" >> /etc/rita/config.yaml
+    sleep 2
+    if [ "$DOM_FLAG" = "true" ]; then
+      cat $DOMAINS_FILE >> /etc/rita/config.yaml
+    else
+      cat " []"
+    fi    
+    sleep 2
+    echo "
   FilterExternalToInternal: true
 BlackListed:
   Enabled: true
@@ -519,6 +527,14 @@ else
     echo "Whitelist = none."
     CHANGE_CONFIG=false
 fi
+if [[ ! -z ${DOMAINS} ]] && [ -f "$DOMAINS" ]; then # check if other path defined
+    DOMAINS_FILE="${DOMAINS}"
+    echo "Domains whitelist = $DOMAINS_FILE"
+    DOM_FLAG=true
+else
+    echo "Domains whitelist = none."
+    DOM_FLAG=false
+fi
 echo "Dirs will be located at $ROOTDIR. Ctrl+C to abort..." 
 
 sleep 5
@@ -538,7 +554,7 @@ sleep 3
 if [ "$CHANGE_CONFIG" = "true" ]; then
     __whitelist
 fi
-fortune | cowsay
+/usr/games/fortune | /usr/games/cowsay 
 inotifywait \
   "$PCAP_DIR" \
   --monitor \
