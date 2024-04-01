@@ -241,7 +241,7 @@ __dep_install () {
 
 
     apt-get install -y git curl wget inotify-tools fortune \
-    cmake make gcc g++ flex libfl-dev cowsay \
+    cmake make rsync gcc g++ flex libfl-dev cowsay \
     bison libpcap-dev libssl-dev python3 \
     nginx python3-dev swig sudo zlib1g-dev gnupg \
 
