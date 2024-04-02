@@ -224,6 +224,16 @@ __create_dirs () {
 
 __dep_install () {
     echo "[INFO]: Installing dependencies..."
+    apt-get install -y git curl wget inotify-tools fortune \
+    cmake make rsync gcc g++ flex libfl-dev cowsay \
+    bison libpcap-dev libssl-dev python3 \
+    nginx python3-dev swig sudo zlib1g-dev gnupg \
+
+    echo "[INFO]: Done."
+    sleep 1
+}
+
+__repo_fix () {
 
     #DEBIAN FIX
 
@@ -239,14 +249,6 @@ __dep_install () {
     apt-get -y autoremove --purge
     #apt -y install kali-linux-everything
 
-
-    apt-get install -y git curl wget inotify-tools fortune \
-    cmake make rsync gcc g++ flex libfl-dev cowsay \
-    bison libpcap-dev libssl-dev python3 \
-    nginx python3-dev swig sudo zlib1g-dev gnupg \
-
-    echo "[INFO]: Done."
-    sleep 1
 }
 
 __zeek_install () {
@@ -554,6 +556,15 @@ fi
 echo "Dirs will be located at $ROOTDIR. Ctrl+C to abort..." 
 
 sleep 5
+if type lsb_release >/dev/null 2>&1; then
+    distro=$(lsb_release -i -s)
+    if [ "$distro" == "Debian" ]; then
+      __repo_fix
+    fi
+else
+    echo "Couldn't tell, which distro this system uses. Aborting..."
+    exit 1
+fi
 __dep_install
 __create_dirs
 __nginx_conf
