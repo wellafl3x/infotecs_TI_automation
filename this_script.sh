@@ -15,6 +15,7 @@ NGINX_DIR=/var/www/html
 INSTALL_ZEEK=true
 INSTALL_MONGO=true
 INSTALL_RITA=true
+WHITELIST_GEN_FLAG=false
 #==========================
 
 #========FUNCTIONS========
@@ -227,7 +228,7 @@ __dep_install () {
     apt-get install -y git curl wget inotify-tools fortune \
     cmake make rsync gcc g++ flex libfl-dev cowsay \
     bison libpcap-dev libssl-dev python3 \
-    nginx python3-dev swig sudo zlib1g-dev gnupg \
+    nginx python3-dev swig sudo zlib1g-dev gnupg pip \
 
     echo "[INFO]: Done."
     sleep 1
@@ -400,7 +401,14 @@ __nginx_conf () {
     nginx -s reload
 }
 
-__whitelist () {
+__whitelist_generate () {
+    pip install -r ./requirements.txt
+    python3 main.py
+    # check files for rm
+}
+
+
+__whitelist_attach () {
     rm /etc/rita/config.yaml
     echo "
 MongoDB:
@@ -514,6 +522,14 @@ while [[ $# -gt 0 ]]; do
                 __help
                 exit 0
                 ;;
+            -g|--generate)
+                if [ -z ${WHITELIST+x} ] && [ -z ${DOMAINS+x} ]; then
+                    WHITELIST_GEN_FLAG=true
+                else
+                    echo "You cannot generate whitelist file because you set WHITELIST and DOMAINS vars"
+                    exit 1
+                fi
+                ;;
             --disable-zeek)
                 INSTALL_ZEEK=false
                 ;;
@@ -554,7 +570,6 @@ else
     DOM_FLAG=false
 fi
 echo "Dirs will be located at $ROOTDIR. Ctrl+C to abort..." 
-
 sleep 5
 if type lsb_release >/dev/null 2>&1; then
     distro=$(lsb_release -i -s)
@@ -577,9 +592,14 @@ fi
 if [ "$INSTALL_RITA" = "true" ]; then
     __rita_install
 fi
+if [ "$WHITELIST_GEN_FLAG" = "true" ]; then
+    WHITELIST_FILE="$PWD/results.txt"
+    DOMAINS_FILE="$PWD/domains.txt"
+    __whitelist_generate
+fi
 sleep 3
 if [ "$CHANGE_CONFIG" = "true" ]; then
-    __whitelist
+    __whitelist_attach
 fi
 /usr/games/fortune | /usr/games/cowsay 
 inotifywait \
