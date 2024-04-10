@@ -610,7 +610,7 @@ sleep 3
 if [ "$CHANGE_CONFIG" = "true" ]; then
     __whitelist_attach
 fi
-/usr/games/fortune | /usr/games/cowsay 
+/usr/games/cowsay -f eyes "The system has been started. Can be accessible on 80 port"
 inotifywait \
   "$PCAP_DIR" \
   --monitor \
