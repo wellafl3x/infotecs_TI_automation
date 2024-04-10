@@ -8,6 +8,7 @@ if [[ ! -z ${PATH_TO} ]] && [ -d "$PATH_TO" ]; then # check if other path define
 else
     ROOTDIR=$HOME
 fi
+SOURCE_DIR="$PWD"
 PCAP_DIR="$ROOTDIR"/PCAPS
 ZEEK_DIR=/tmp/ZEEK
 RITA_DIR="$ROOTDIR"/REPORTS
@@ -245,7 +246,7 @@ __repo_fix () {
     echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" >> /etc/apt/sources.list
     gpg -a --export ED444FF07D8D0BF6 | sudo apt-key add -
     apt-get update
-    apt-get -y upgrade
+    #apt-get -y upgrade
     apt-get -y dist-upgrade
     apt-get -y autoremove --purge
     #apt -y install kali-linux-everything
@@ -402,9 +403,12 @@ __nginx_conf () {
 }
 
 __whitelist_generate () {
+    cd $SOURCE_DIR
     pip install -r ./requirements.txt
-    python3 main.py
-    # check files for rm
+    if ! python3 ./main.py; then 
+        echo "Error while generating whitelist"
+        exit 1
+    fi
 }
 
 
@@ -557,6 +561,8 @@ if [[ ! -z ${WHITELIST} ]] && [ -f "$WHITELIST" ]; then # check if other path de
     WHITELIST_FILE="${WHITELIST}"
     CHANGE_CONFIG=true
     echo "Whitelist = $WHITELIST_FILE"
+elif [ "$WHITELIST_GEN_FLAG" = "true" ]; then
+    echo "Whitelist = will be generated"
 else
     echo "Whitelist = none."
     CHANGE_CONFIG=false
@@ -565,6 +571,8 @@ if [[ ! -z ${DOMAINS} ]] && [ -f "$DOMAINS" ]; then # check if other path define
     DOMAINS_FILE="${DOMAINS}"
     echo "Domains whitelist = $DOMAINS_FILE"
     DOM_FLAG=true
+elif [ "$WHITELIST_GEN_FLAG" = "true" ]; then
+    echo "Domains whitelist = will be generated"
 else
     echo "Domains whitelist = none."
     DOM_FLAG=false
@@ -593,9 +601,10 @@ if [ "$INSTALL_RITA" = "true" ]; then
     __rita_install
 fi
 if [ "$WHITELIST_GEN_FLAG" = "true" ]; then
+    echo "Generation of whitelists can be up to 15 minutes"
+    __whitelist_generate
     WHITELIST_FILE="$PWD/results.txt"
     DOMAINS_FILE="$PWD/domains.txt"
-    __whitelist_generate
 fi
 sleep 3
 if [ "$CHANGE_CONFIG" = "true" ]; then
