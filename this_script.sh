@@ -405,8 +405,8 @@ __nginx_conf () {
 __whitelist_generate () {
     cd $SOURCE_DIR
     pip install -r ./requirements.txt
-    if ! python3 ./main.py; then 
-        echo "Error while generating whitelist"
+    if ! python3 main.py; then 
+        echo "Error while generating whitelist."
         exit 1
     fi
 }
@@ -610,7 +610,7 @@ sleep 3
 if [ "$CHANGE_CONFIG" = "true" ]; then
     __whitelist_attach
 fi
-/usr/games/cowsay -f eyes "The system has been started. Can be accessible on 80 port"
+/usr/games/cowsay -f eyes "The system has been started. Can be accessible on 80 port. Press Q to exit."
 inotifywait \
   "$PCAP_DIR" \
   --monitor \
