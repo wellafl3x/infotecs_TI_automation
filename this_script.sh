@@ -2,6 +2,21 @@
 # Automation solution for analyzing PCAP files with Zeek and RITA frameworks.
 # Written by wellafl3x.
 
+#+++++++OS_DETECTION+++++++
+# Support of other distros would be implement here
+DISTR=null
+if type lsb_release >/dev/null 2>&1; then
+    distro=$(lsb_release -i -s)
+    if [ "$distro" == "Debian" ]; then
+      DISTR="Debian"
+    elif [ "$distro" == "Ubuntu" ]; then
+      DISTR="Ubuntu"
+    fi
+else
+    echo "Couldn't tell, which distro this system uses. Aborting..."
+    exit 1
+fi
+
 #========CONST_VARS========
 if [[ ! -z ${PATH_TO} ]] && [ -d "$PATH_TO" ]; then # check if other path defined
     ROOTDIR="${PATH_TO}"
@@ -235,36 +250,24 @@ __dep_install () {
     sleep 1
 }
 
-__repo_fix () {
-
-    #DEBIAN FIX
-
-    apt update
-    apt-get -y install wget gnupg dirmngr
-    wget -q -O - https://archive.kali.org/archive-key.asc | gpg --import
-    gpg --keyserver hkp://keys.gnupg.net --recv-key 44C6513A8E4FB3D30875F758ED444FF07D8D0BF6
-    echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" >> /etc/apt/sources.list
-    gpg -a --export ED444FF07D8D0BF6 | sudo apt-key add -
-    apt-get update
-    #apt-get -y upgrade
-    apt-get -y dist-upgrade
-    apt-get -y autoremove --purge
-    #apt -y install kali-linux-everything
-
-}
-
 __zeek_install () {
     echo "[INFO]: Installing ZEEK..."
     sleep 1 
-    apt install -y zeek
-    git clone https://github.com/zeek/zeek-aux.git /opt/zeek-aux
-    cd /opt/zeek-aux
-    git clone https://github.com/zeek/cmake.git
-    ./configure
-    make 
-    make install
+    if [ "$DISTR" == "Debian" ]; then
+        # zeek installation for Debian
+        echo 'deb http://download.opensuse.org/repositories/security:/zeek/Debian_12/ /' | sudo tee /etc/apt/sources.list.d/security:zeek.list
+        curl -fsSL https://download.opensuse.org/repositories/security:zeek/Debian_12/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null
+        apt update
+        apt install -y zeek-6.0
+    elif  [ "$DISTR" == "Ubuntu" ]; then
+        echo 'deb http://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/security:zeek.list
+        curl -fsSL https://download.opensuse.org/repositories/security:zeek/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null
+        apt update
+        apt install -y zeek-6.0
+    fi
+    export PATH=$PATH:/opt/zeek/bin
+    echo "export PATH=$PATH:/opt/zeek/bin" >> $HOME/.bashrc
     echo "[INFO]: Done."
-    sleep 3
 
 }
 
@@ -579,15 +582,6 @@ else
 fi
 echo "Dirs will be located at $ROOTDIR. Ctrl+C to abort..." 
 sleep 5
-if type lsb_release >/dev/null 2>&1; then
-    distro=$(lsb_release -i -s)
-    if [ "$distro" == "Debian" ]; then
-      __repo_fix
-    fi
-else
-    echo "Couldn't tell, which distro this system uses. Aborting..."
-    exit 1
-fi
 __dep_install
 __create_dirs
 __nginx_conf
