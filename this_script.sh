@@ -32,6 +32,7 @@ INSTALL_ZEEK=true
 INSTALL_MONGO=true
 INSTALL_RITA=true
 WHITELIST_GEN_FLAG=false
+SMB_CONF=false
 #==========================
 
 #========FUNCTIONS========
@@ -55,6 +56,8 @@ __help () {
     echo ""
     echo "-h --help         Display this message"
     echo ""
+    echo "-g --generate     Generate whitelist (up to 15 min)"
+    echo "-smb --samba      Use samba for access to PCAPS directory"
     echo "--disable-zeek    Run script without ZEEK installation"
     echo "--disable-rita    Run script without RITA installation"
     echo "--disable-mongo   Run script without Mongo installation"
@@ -248,6 +251,35 @@ __dep_install () {
 
     echo "[INFO]: Done."
     sleep 1
+}
+
+__smb_configure () {
+    apt install -y samba >> /dev/null
+    echo "Enter username (it must be exists in OS!): "
+    read -r smb_username
+    c_c=0
+    while [ $c_c != 1 ]; do
+      echo "Enter password: "
+      read -rs smb_password
+      echo "Retype password: "
+      read -rs smb_passw0rd
+      if [ "$smb_password" == "$smb_passw0rd" ]; then
+        c_c=1
+      else
+        echo "Try again!"
+      fi
+    done
+    echo "Success!"
+    sleep 1
+    (echo "$smb_password"; sleep 1; echo "$smb_password" ) | sudo smbpasswd -s -a "$smb_username"
+    smb_config_path=/etc/samba/smb.conf
+    rm $smb_config_path
+    cp ./templates/smb.conf /etc/samba
+    echo "[pcaps]" >> $smb_config_path
+    echo "   path = $PCAP_DIR" >> $smb_config_path
+    echo "   read only = no" >> $smb_config_path
+    echo "   guest ok = no" >> $smb_config_path
+    echo "   valid user = $smb_username" >> $smb_config_path
 }
 
 __zeek_install () {
@@ -538,6 +570,9 @@ while [[ $# -gt 0 ]]; do
                     exit 1
                 fi
                 ;;
+            -smb|--samba)
+                SMB_CONF=true
+                ;;
             --disable-zeek)
                 INSTALL_ZEEK=false
                 ;;
@@ -585,6 +620,9 @@ echo "Dirs will be located at $ROOTDIR. Ctrl+C to abort..."
 sleep 5
 __dep_install
 __create_dirs
+if [ "$SMB_CONF" = "true" ]; then
+    __smb_configure
+fi
 __nginx_conf
 if [ "$INSTALL_ZEEK" = "true" ]; then
     __zeek_install
