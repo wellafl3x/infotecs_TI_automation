@@ -407,7 +407,8 @@ __nginx_conf () {
 
 __whitelist_generate () {
     cd $SOURCE_DIR
-    pip install -r ./requirements.txt
+    pip install -r ./requirements.txt --break-system-packages
+    echo "Начинается генерация вайтлистов. Может занять примерно 15 минут"
     if ! python3 main.py; then 
         echo "Error while generating whitelist."
         exit 1
