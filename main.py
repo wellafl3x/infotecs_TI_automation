@@ -11,7 +11,7 @@ url = "https://raw.githubusercontent.com/AdguardTeam/AdGuardHome/master/client/s
 with urllib.request.urlopen(url) as urls:
     ag_list = json.load(urls)
 
-#categories = ag_list["categories"]
+# categories = ag_list["categories"]
 trackers = ag_list["trackers"]
 trackerDomains = ag_list["trackerDomains"]
 ag_list.clear()
@@ -55,9 +55,9 @@ for x in ip:
     obj = IPASN(net)
     result = obj.lookup()
     if " " in result["asn"]:
-        tmp = result["asn"].split()
+        tmp = result["asn"].split(" ")
         asn.extend(tmp)
-    if result["asn"] != "NA":
+    if result["asn"] != "NA" and not " " in result["asn"]:
         asn.append(result["asn"])
 # Удаление дубликатов
 asn = list(set(asn))
@@ -69,11 +69,11 @@ cnt = 0
 session = requests.Session()
 subnet_all = []
 for x in asn:
-    url = "https://bgp.he.net/AS"+x+"#_prefixes"
-    page = session.get(url).text
-    soup = BeautifulSoup(page, "html.parser")
     try:
-        table = soup.find("table", {"id":"table_prefixes4"})
+        url = "https://bgp.he.net/AS" + x + "#_prefixes"
+        page = session.get(url).text
+        soup = BeautifulSoup(page, "html.parser")
+        table = soup.find("table", {"id": "table_prefixes4"})
         for row in table.findAll("tr"):
             columns = row.findAll("td")
             if len(columns) > 0:
@@ -81,7 +81,13 @@ for x in asn:
                 cnt += 1
                 subnet_all.append(pool)
     except:
-        pass
+        url = "https://ip.guide/AS" + x
+        print(x)
+        response = requests.get(url)
+        ip_pool = response.json()
+        pool = ip_pool["routes"]["v4"]
+        cnt += len(pool)
+        subnet_all.append(pool)
 
 with open('domains.txt', 'a') as f:
     f.writelines(f"    - {item}\n" for item in domains)
