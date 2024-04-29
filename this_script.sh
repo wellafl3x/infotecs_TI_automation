@@ -280,6 +280,8 @@ __smb_configure () {
     echo "   read only = no" >> $smb_config_path
     echo "   guest ok = no" >> $smb_config_path
     echo "   valid user = $smb_username" >> $smb_config_path
+    systemctl enable smdb.service
+    systemctl start smdb.service
 }
 
 __zeek_install () {
