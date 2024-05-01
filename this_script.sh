@@ -2,14 +2,14 @@
 # Automation solution for analyzing PCAP files with Zeek and RITA frameworks.
 # Written by wellafl3x.
 # TODO:
-# 1. Check system compability, add CentOS support
-# 2. Add support of various OS in __dep_install func
-# 3. Add support of various OS in __zeek_install func
-# 4. Add support of various OS in __mongo_install func
-# 5. Test and debug in diff distro
+# 1. Check system compability (debian, ubuntu and kali)
+# 2. Add support of various OS in __zeek_install func (case)
+# 3. Add support of various OS in __mongo_install func (case)
+# 4. Test and debug in diff distro
 
 #========CONST_VARS========
 #dirs and files
+DISTR=null
 PCAP_DIR="$ROOTDIR"/PCAPS
 ZEEK_DIR=/tmp/ZEEK
 RITA_DIR="$ROOTDIR"/REPORTS
@@ -76,7 +76,6 @@ __hello () {
 }
 # __os_detection will detect which repo is system using
 __os_detection () {
-    DISTR=null
     if type lsb_release >/dev/null 2>&1; then
       distro=$(lsb_release -i -s)
       if [ "$distro" == "Debian" ]; then
