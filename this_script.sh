@@ -10,7 +10,6 @@
 
 #========CONST_VARS========
 #dirs and files
-SOURCE_DIR="$PWD"
 PCAP_DIR="$ROOTDIR"/PCAPS
 ZEEK_DIR=/tmp/ZEEK
 RITA_DIR="$ROOTDIR"/REPORTS
@@ -269,7 +268,6 @@ __nginx_conf () {
 }
 # __whitelist_generate will generate whitelists of IPs and Domains via main.py file
 __whitelist_generate () {
-    cd $SOURCE_DIR
     pip install -r ./requirements.txt --break-system-packages
     echo "Начинается генерация вайтлистов. Может занять примерно 15 минут"
     if ! python3 main.py; then 
