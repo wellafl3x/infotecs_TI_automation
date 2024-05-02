@@ -28,7 +28,7 @@ Filtering:
     - 255.255.255.255/32
     - ::1/128
     - fe80::/10
-    - ff00::/8"
+    - ff00::/8
   # IP WHITELIST goes here
   InternalSubnets:
     - 10.0.0.0/8

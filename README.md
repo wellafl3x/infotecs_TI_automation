@@ -24,6 +24,7 @@
 git clone https://github.com/wellafl3x/infotecs_TI_automation.git
 cd infotecs_TI_automation
 chmod +x ./this_script.sh
+source ./vars
 PATH_TO=$PWD WHITELIST=./templates/whitelists/results.txt \
 DOMAINS=./templates/whitelists/domains.txt ./this_script.sh -smb \
 ```
