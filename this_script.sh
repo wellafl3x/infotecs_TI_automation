@@ -2,9 +2,7 @@
 # Automation solution for analyzing PCAP files with Zeek and RITA frameworks.
 # Written by wellafl3x.
 # TODO:
-# 1.troubles with ubuntu packages
-# 2. add case if rita doesnt analyze file so report dont attach to nginx
-# DEBIAN AND KALI WORKS! CHECK UBUNTU
+# 1. add case if rita doesnt analyze file so report dont attach to nginx
 
 
 #========CONST_VARS========
