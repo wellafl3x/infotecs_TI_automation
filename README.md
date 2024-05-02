@@ -30,6 +30,7 @@ DOMAINS=./templates/whitelists/domains.txt ./this_script.sh -smb \
 ```
 
 Переменные PATH_TO, WHITELIST и DOMAINS служат для обозначения рабочей директории, указания на файл с белым списком IP-адресов, на файл с белым списков доменов.
+Указание глобальных переменных через файл с переменными необходимо для нормального вызова служб фреймворков. Связано с [невозможностью объявления системных переменных в bash-скриптах](https://stackoverflow.com/questions/16618071/can-i-export-a-variable-to-the-environment-from-a-bash-script-without-sourcing-i).
 
 Доступные флаги:
 

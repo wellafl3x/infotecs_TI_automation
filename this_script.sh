@@ -3,8 +3,8 @@
 # Written by wellafl3x.
 # TODO:
 # 1.troubles with ubuntu packages
-# 2. troubles with rita config
-# 3. add case if rita doesnt analyze file so report dont attach to nginx
+# 2. add case if rita doesnt analyze file so report dont attach to nginx
+# DEBIAN AND KALI WORKS! CHECK UBUNTU
 
 
 #========CONST_VARS========
