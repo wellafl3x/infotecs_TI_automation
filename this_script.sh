@@ -3,7 +3,8 @@
 # Written by wellafl3x.
 # TODO:
 # 1. add case if rita doesnt analyze file so report dont attach to nginx
-
+# 2. troubles with permissions to samba
+# 3. remove last "/" from ROOTDIR var!
 
 #========CONST_VARS========
 if [[ ! -z ${PATH_TO} ]] && [ -d "$PATH_TO" ]; then # check if other path defined
@@ -145,7 +146,7 @@ __dep_install () {
     apt-get update --fix-missing
     apt-get install -y git curl wget inotify-tools fortune \
     cmake make rsync gcc g++ flex libfl-dev cowsay \
-    bison libpcap-dev libssl-dev python3 \
+    bison libpcap-dev libssl-dev python3 lsof \
     nginx python3-dev swig sudo zlib1g-dev gnupg pip \
     >> /dev/null
     echo "[INFO]: Done."
@@ -186,6 +187,7 @@ __smb_configure () {
     } >> $smb_config_path
     systemctl enable smbd.service
     systemctl start smbd.service
+    systemctl restart smbd.service
 }
 # __zeek install will install zeek to the system
 __zeek_install () {
@@ -305,7 +307,7 @@ __nginx_conf () {
     fi
     touch /etc/nginx/conf.d/rita.conf
     cat ./templates/web/rita.conf >> /etc/nginx/conf.d/rita.conf
-    if ! nginx -s reload; then
+    if ! /usr/sbin/nginx -s reload; then
       echo "[INFO]: Error while reload NGINX."
     else
       echo "[INFO]: Nginx reloaded"
@@ -336,6 +338,21 @@ __whitelist_attach () {
         sed -i "s/$dom_match/$dom_replace\n$dom_match/" $RITA_CONF_FILE
     fi    
 }
+# __filecheck will check if file is completely exists in dir
+__filecheck () {
+    completed=false
+    while [[ "$completed" != "true" ]]; do
+        for file in "$PCAP_DIR"/*; do
+            if [[ $(lsof -t $file) ]]; then
+                echo "File is busy..."
+                sleep 1
+            else
+                echo "File is ready"
+                completed=true
+            fi
+        done
+    done
+}
 # __main func start inotify dir monitoring
 __main () {
     /usr/games/cowsay -f eyes "The system has been started. Can be accessible on 80 port."
@@ -346,6 +363,7 @@ __main () {
     -e moved_to \
     --include "\.pcap" \
     | while read -r dir act fil; do
+        __filecheck
         __zeek_analyze
         __rita_analyze
     done
