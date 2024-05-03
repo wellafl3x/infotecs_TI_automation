@@ -24,7 +24,7 @@ for x in trackers:
         else:
             records.append(x)
             records.append(trackers[x]["companyId"])
-print("Извлечено "+str(len(records))+" записей")
+print("Извлечено " + str(len(records)) + " записей")
 
 # Извлечение доменов
 domains = []
@@ -35,7 +35,7 @@ for x in records:
 records.clear()
 trackers.clear()
 trackerDomains.clear()
-print("Получено "+str(len(domains))+" доменов")
+print("Получено " + str(len(domains)) + " доменов")
 
 # Разрешение доменов для получения хостов
 ip = []
@@ -46,7 +46,7 @@ for x in domains:
             ip.append(host)
     except:
         pass
-print("Получено "+str(len(ip))+" IP-адресов")
+print("Получено " + str(len(ip)) + " IP-адресов")
 
 # Запрос ASN для IP-адресов
 asn = []
@@ -62,7 +62,7 @@ for x in ip:
 # Удаление дубликатов
 asn = list(set(asn))
 ip.clear()
-print("IP-адресам соответствует "+str(len(asn))+" автономных систем")
+print("IP-адресам соответствует " + str(len(asn)) + " автономных систем")
 
 # Получение пулов IP для каждой ASN
 cnt = 0
@@ -82,7 +82,6 @@ for x in asn:
                 subnet_all.append(pool)
     except:
         url = "https://ip.guide/AS" + x
-        print(x)
         response = requests.get(url)
         ip_pool = response.json()
         pool = ip_pool["routes"]["v4"]
@@ -96,4 +95,4 @@ domains.clear()
 with open('results.txt', 'a') as f:
     f.writelines(f"    - {item}\n" for item in subnet_all)
 subnet_all.clear()
-print("В файл results.txt записано "+str(cnt)+" строк.")
+print("В файл results.txt записано " + str(cnt) + " строк.")
