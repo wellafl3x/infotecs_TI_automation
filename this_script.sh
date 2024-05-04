@@ -3,12 +3,13 @@
 # Written by wellafl3x.
 # TODO:
 # 1. add case if rita doesnt analyze file so report dont attach to nginx
-# 2. troubles with permissions to samba
-# 3. remove last "/" from ROOTDIR var!
 
 #========CONST_VARS========
 if [[ ! -z ${PATH_TO} ]] && [ -d "$PATH_TO" ]; then # check if other path defined
     ROOTDIR="${PATH_TO}"
+    if [ ${ROOTDIR: -1} = "/" ]; then # fix if path has last "/" char
+        ROOTDIR=${ROOTDIR::-1}
+    fi
 else
     ROOTDIR=$HOME
 fi
@@ -197,13 +198,19 @@ __zeek_install () {
         echo 'deb http://download.opensuse.org/repositories/security:/zeek/Debian_12/ /' | sudo tee /etc/apt/sources.list.d/security:zeek.list
         curl -fsSL https://download.opensuse.org/repositories/security:zeek/Debian_12/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null
         apt update
-        apt install -y zeek-6.0
+        if ! apt install -y zeek-6.0; then
+            echo "[FATAL]: Errors while installing zeek. Abort..."
+            exit
+        fi
     elif  [ "$os" == "ubuntu" ]; then
         # zeek installation for Ubuntu
         echo 'deb http://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/security:zeek.list
         curl -fsSL https://download.opensuse.org/repositories/security:zeek/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null
         apt update
-        apt install -y zeek-6.0
+        if ! apt install -y zeek-6.0; then
+            echo "[FATAL]: Errors while installing zeek. Abort..."
+            exit
+        fi
     fi
     echo "export PATH=$PATH:/opt/zeek/bin" >> $HOME/.bashrc
     echo "[INFO]: Done."
