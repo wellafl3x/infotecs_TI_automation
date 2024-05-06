@@ -1,8 +1,6 @@
 #!/bin/bash
 # Automation solution for analyzing PCAP files with Zeek and RITA frameworks.
 # Written by wellafl3x.
-# TODO:
-# 1. add case if rita doesnt analyze file so report dont attach to nginx
 
 #========CONST_VARS========
 if [[ ! -z ${PATH_TO} ]] && [ -d "$PATH_TO" ]; then # check if other path defined
@@ -27,6 +25,7 @@ WHITELIST_GEN_FLAG=false
 SMB_CONF=false
 os=null
 os_version=null
+rename_index="_copy"
 #==========================
 
 #========FUNCTIONS========
@@ -284,25 +283,35 @@ __zeek_analyze () {
 }
 # __rita_analyze will create reports based on zeek logs, and make this reports accessible via 80 port
 __rita_analyze () {
+    qqqq=$PWD
     cd $RITA_DIR
-    for dir in $ZEEK_DIR/*/; do ##
+    for dir in $ZEEK_DIR/*/; do
         if [ ! -z "$(ls -A $ZEEK_DIR)" ]; then
-          dir_name="$(basename ${dir})"
-          db_name="${dir_name%.*}"
-          rita import $dir $db_name
-          rita html-report $db_name
-          cp -r $RITA_DIR/$db_name $NGINX_DIR
-          rm -r $dir
-          line="10 a <a href="
-          line+='"'
-          line+="./$db_name/$db_name/index.html"
-          line+='"'
-          line+=">$db_name"
-          line+='</a>"'
-          sed -i "$line" $NGINX_DIR/index.html
+            dir_name="$(basename ${dir})"
+            db_name="${dir_name%.*}"
+            rita_db_list=$(rita list)
+            if [[ $rita_db_list == *"$db_name"* ]]; then
+                echo "RITA already has this db_name."
+                sleep 1
+                echo "Renaming..."
+                db_name=$(("$db_name" + "$rename_index")) ## check if work! check if new var needed 
+            fi
+            rita import $dir $db_name
+            rita html-report $db_name
+            cp -r $RITA_DIR/$db_name $NGINX_DIR
+            rm -r $dir
+            line="10 a <a href="
+            line+='"'
+            line+="./$db_name/$db_name/index.html"
+            line+='"'
+            line+=">$db_name"
+            line+='</a>"'
+            sed -i "$line" $NGINX_DIR/index.html            
         fi
     done
+    cd $qqqq
 }
+
 # __nginx_conf will configure NGINX web-server to access thru him to rita reports
 __nginx_conf () {
     systemctl start nginx
