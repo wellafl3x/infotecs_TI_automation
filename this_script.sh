@@ -291,22 +291,21 @@ __rita_analyze () {
             db_name="${dir_name%.*}"
             rita_db_list=$(rita list)
             if [[ $rita_db_list == *"$db_name"* ]]; then
-                echo "RITA already has this db_name."
-                sleep 1
-                echo "Renaming..."
-                db_name=$(("$db_name" + "$rename_index")) ## check if work! check if new var needed 
-            fi
-            rita import $dir $db_name
-            rita html-report $db_name
-            cp -r $RITA_DIR/$db_name $NGINX_DIR
-            rm -r $dir
-            line="10 a <a href="
-            line+='"'
-            line+="./$db_name/$db_name/index.html"
-            line+='"'
-            line+=">$db_name"
-            line+='</a>"'
-            sed -i "$line" $NGINX_DIR/index.html            
+                echo "RITA already has this db_name. Report will not generating"
+                sleep 3
+            else
+                rita import $dir $db_name
+                rita html-report $db_name
+                cp -r $RITA_DIR/$db_name $NGINX_DIR
+                rm -r $dir
+                line="10 a <a href="
+                line+='"'
+                line+="./$db_name/$db_name/index.html"
+                line+='"'
+                line+=">$db_name"
+                line+='</a>"'
+                sed -i "$line" $NGINX_DIR/index.html 
+            fi           
         fi
     done
     cd $qqqq
