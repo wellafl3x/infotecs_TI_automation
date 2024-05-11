@@ -9,7 +9,7 @@ if [[ ! -z ${PATH_TO} ]] && [ -d "$PATH_TO" ]; then # check if other path define
         ROOTDIR=${ROOTDIR::-1}
     fi
 else
-    ROOTDIR=$HOME
+    ROOTDIR=$PWD
 fi
 #dirs and files
 PCAP_DIR="$ROOTDIR"/PCAPS
@@ -310,7 +310,6 @@ __rita_analyze () {
     done
     cd $qqqq
 }
-
 # __nginx_conf will configure NGINX web-server to access thru him to rita reports
 __nginx_conf () {
     systemctl start nginx
