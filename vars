@@ -1,8 +1,8 @@
 # shellcheck disable=SC2148
 # editable vars
-PATH_TO=$PWD # var for working dirs catalog (PWD by default)
-WHITELIST=./templates/whitelists/results.txt # IPv4 whitelist (comment this line for generating)
-DOMAINS=./templates/whitelists/domains.txt # DNS whitelist (comment this line for generating)
+#PATH_TO=$PWD # var for working dirs catalog (PWD by default)
+#WHITELIST=./templates/whitelists/results.txt # IPv4 whitelist (uncomment this line for using custom files)
+#DOMAINS=./templates/whitelists/domains.txt # DNS whitelist (uncomment this line for using custom files)
 
 # DO NOT EDIT   | | |   DO NOT EDIT
 # VARS BELOW    v v v   VARS BELOW
