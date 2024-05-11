@@ -1,4 +1,28 @@
-export GOROOT=/usr/local/go
-export GOPATH=$HOME/go
-export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
-export PATH=$PATH:/opt/zeek/bin
+# shellcheck disable=SC2148
+# editable vars
+PATH_TO=$PWD # var for working dirs catalog (PWD by default)
+WHITELIST=./templates/whitelists/results.txt # IPv4 whitelist (comment this line for generating)
+DOMAINS=./templates/whitelists/domains.txt # DNS whitelist (comment this line for generating)
+
+# DO NOT EDIT   | | |   DO NOT EDIT
+# VARS BELOW    v v v   VARS BELOW
+
+# global system vars - DO NOT TOUCH!
+GOROOT=/usr/local/go
+GOPATH=$HOME/go
+PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+PATH=$PATH:/opt/zeek/bin
+# script vars - DO NOT TOUCH!
+CHANGE_CONFIG=false
+ZEEK_DIR=/tmp/ZEEK
+RITA_DIR="$ROOTDIR"/REPORTS
+PCAP_DIR=""
+NGINX_DIR=/var/www/html
+RITA_CONF_FILE=/etc/rita/config.yaml
+INSTALL_ZEEK=true
+INSTALL_MONGO=true
+INSTALL_RITA=true
+WHITELIST_GEN_FLAG=false
+SMB_CONF=false
+os=null
+os_version=null
