@@ -1,6 +1,14 @@
 #!/bin/bash
 # Written by wellafl3x.
 
+# TODO:
+# check suricata installation on ubuntu and kali (DONE)
+# add repo with -y (DONE)
+# suricata config file template with custom alert output to specific location 
+# write func suricata analyze (DONE)
+# guess how to import suricata logs into web page (DONE)
+# paste raw suricata alerts in rita reports web pages
+
 # shellcheck disable=SC1091
 source vars
 
@@ -31,6 +39,7 @@ __help () {
     echo "--disable-zeek    Run script without ZEEK installation"
     echo "--disable-rita    Run script without RITA installation"
     echo "--disable-mongo   Run script without Mongo installation"
+    echo "--disable-sur     Run script without Suricata installation"
     echo "--disable-all     Run script without any install processes"
     echo ""
 }
@@ -96,6 +105,9 @@ __create_dirs () {
     if [ ! -d "$PCAP_DIR" ]; then
         mkdir "$PCAP_DIR"
     fi
+    if [ ! -d "$SURICATA_DIR" ]; then
+        mkdir "$SURICATA_DIR"
+    fi
     if [ ! -d "$ZEEK_DIR" ]; then
         mkdir "$ZEEK_DIR"
     fi
@@ -122,8 +134,8 @@ __dep_install () {
     apt-get update --fix-missing
     apt-get install -y git curl wget inotify-tools fortune \
     cmake make rsync gcc g++ flex libfl-dev cowsay \
-    bison libpcap-dev libssl-dev python3 lsof \
-    nginx python3-dev swig sudo zlib1g-dev gnupg pip \
+    bison libpcap-dev libssl-dev python3 lsof python3-launchpadlib \
+    nginx python3-dev swig sudo zlib1g-dev gnupg pip software-properties-common \
     >> /dev/null
     echo "[INFO]: Done."
 }
@@ -245,6 +257,45 @@ __rita_install () {
     echo "[INFO]: Done."
     cd $qq
 }
+# __suricata_install provides installation of suricata IDS
+__suricata_install () {
+    echo "[INFO]: Installing Suricata..."
+    if [ "$os" == "debian" ] || [ "$os" == "kali" ]; then
+        # suricata installation for debian and kali
+        add-apt-repository -y ppa:oisf/suricata-stable 
+        apt-get update
+        if ! apt-get install -y suricata; then
+            echo "[FATAL]: Errors while installing suricata. Abort..."
+            exit
+        fi
+    elif [ "$os" == "ubuntu" ]; then
+        # suricata installation for ubuntu
+        add-apt-repository -y ppa:oisf/suricata-stable
+        apt-get update
+        if ! apt-get install -y suricata; then
+            echo "[FATAL]: Errors while installing suricata. Abort..."
+            exit
+        fi
+    fi
+    echo "[INFO]: Done! Checking version of Suricata.."
+    sleep 1
+    /usr/bin/suricata -V
+    echo "[INFO]: Checking signature bases..."
+    /usr/bin/suricata-update
+    sleep 1
+    echo "[INFO]: Done!"
+}
+#__suricata_analyze will analyze pcap files with signature methods
+__suricata_analyze () {
+    for file in "$PCAP_DIR"/*; do
+        if [[ $file == *.pcap ]]; then
+            if [ ! -d "$SURICATA_DIR"/"$(basename ${file})" ]; then
+                mkdir "$SURICATA_DIR"/"$(basename ${file})"
+            fi
+            suricata -r "$file" -l "$SURICATA_DIR"/"$(basename ${file})"
+        fi
+    done
+}
 # __zeek_analyze will analyze pcap files and generate zeek tmp logs
 __zeek_analyze () {
     for file in "$PCAP_DIR"/*; do
@@ -285,6 +336,17 @@ __rita_analyze () {
         fi
     done
     cd $qqqq
+}
+# __suricata_attach will attach raw ET alerts to RITA report
+__suricata_attach () {
+    # этапы
+    # определяем, есть ли ET через греп
+    # если нет, записываем в raw файл empty. если есть, записываем в raw файл ETs
+    # муваем в папку с фреймворком raw файл в NGINX_DIR
+    # модернизируем html-report фреймворка, добавляя туда кнопку suricata
+    # для этого, по пути NGINX_DIR/*имя фреймворка*/*имя фреймворка*/*.html для каждого html файла ищем строку 	<li><a href="long-conns.html">Long Connections</a></li>
+    # и вставляем после этого   <li><a href="*путь_к_raw_файлу*">Suricata Alerts</a></li>
+    # профит
 }
 # __nginx_conf will configure NGINX web-server to access thru him to rita reports
 __nginx_conf () {
@@ -406,8 +468,10 @@ __main () {
     --include "\.pcap" \
     | while read -r dir act fil; do
         __filecheck
+        __suricata_analyze
         __zeek_analyze
         __rita_analyze
+        __suricata_attach
     done
 }
 
@@ -437,10 +501,14 @@ while [[ $# -gt 0 ]]; do
             --disable-rita)
                 INSTALL_RITA=false
                 ;;
+            --disable-sur)
+                INSTALL_SUR=false
+                ;;
             --disable-all)
                 INSTALL_MONGO=false
                 INSTALL_RITA=false
                 INSTALL_ZEEK=false
+                INSTALL_SUR=false
                 ;;
             *)
             echo "Incorrect flags. See -h or --help."
@@ -467,6 +535,9 @@ if [ "$INSTALL_MONGO" = "true" ]; then
 fi
 if [ "$INSTALL_RITA" = "true" ]; then
     __rita_install
+fi
+if [ "$INSTALL_SUR" = "true" ]; then
+    __suricata_install
 fi
 if [ "$WHITELIST_GEN_FLAG" = "true" ]; then
     __whitelist_generate
