@@ -17,6 +17,7 @@ CHANGE_CONFIG=false
 ZEEK_DIR=/tmp/ZEEK
 SURICATA_DIR=/tmp/suricata
 SURICATA_EMPTY=false
+SURICATA_CONF_FILE=/etc/suricata/suricata.yaml
 RITA_DIR="$ROOTDIR"/REPORTS
 PCAP_DIR=""
 NGINX_DIR=/var/www/html

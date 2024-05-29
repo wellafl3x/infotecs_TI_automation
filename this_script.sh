@@ -8,6 +8,7 @@
 # write func suricata analyze (DONE)
 # guess how to import suricata logs into web page (DONE)
 # paste raw suricata alerts in rita reports web pages
+# test final variant in debian, kali and ubuntu
 
 # shellcheck disable=SC1091
 source vars
@@ -280,6 +281,12 @@ __suricata_install () {
     echo "[INFO]: Done! Checking version of Suricata.."
     sleep 1
     /usr/bin/suricata -V
+    echo "[INFO]: Done! Changing default cfg file..."
+    if [ -f $SURICATA_CONF_FILE ]; then
+        rm $SURICATA_CONF_FILE
+    fi
+    cp ./templates/suricata/suricata.yaml $SURICATA_CONF_FILE
+    echo "[INFO]: Done!"
     echo "[INFO]: Checking signature bases..."
     /usr/bin/suricata-update
     sleep 1
@@ -339,14 +346,24 @@ __rita_analyze () {
 }
 # __suricata_attach will attach raw ET alerts to RITA report
 __suricata_attach () {
-    # этапы
-    # определяем, есть ли ET через греп
-    # если нет, записываем в raw файл empty. если есть, записываем в raw файл ETs
-    # муваем в папку с фреймворком raw файл в NGINX_DIR
-    # модернизируем html-report фреймворка, добавляя туда кнопку suricata
-    # для этого, по пути NGINX_DIR/*имя фреймворка*/*имя фреймворка*/*.html для каждого html файла ищем строку 	<li><a href="long-conns.html">Long Connections</a></li>
-    # и вставляем после этого   <li><a href="*путь_к_raw_файлу*">Suricata Alerts</a></li>
-    # профит
+    line="23 a 	<li><a href="
+    line+='"../ET.html"'
+    line+=">Suricata ETs</a></li>"
+    for dir in "$SURICATA_DIR"/*/; do
+        dir_name=$(basename $dir)
+        touch $NGINX_DIR/$dir_name/ET.log
+        if cat $dir/fast.log | grep -q ET; then
+            cat $dir/fast.log | grep ET >> $NGINX_DIR/$dir_name/ET.html
+        else
+            cat "EMPTY" >> $NGINX_DIR/$dir_name/ET.html
+        fi
+    done
+    for dir in "$NGINX_DIR"/*/; do
+        dir_n4me=$(basename $dir)
+        for file in $dir$dir_n4me/*; do
+            sed -i "$line" $file
+        done
+    done
 }
 # __nginx_conf will configure NGINX web-server to access thru him to rita reports
 __nginx_conf () {
