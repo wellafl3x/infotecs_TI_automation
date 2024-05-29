@@ -349,21 +349,24 @@ __suricata_attach () {
     line="23 a 	<li><a href="
     line+='"../ET.html"'
     line+=">Suricata ETs</a></li>"
-    for dir in "$SURICATA_DIR"/*/; do
-        dir_name=$(basename $dir)
-        touch $NGINX_DIR/$dir_name/ET.log
-        if cat $dir/fast.log | grep -q ET; then
-            cat $dir/fast.log | grep ET >> $NGINX_DIR/$dir_name/ET.html
+    for dirA in "$SURICATA_DIR"/*/; do
+        dirA_name=$(basename $dirA)
+        dirA_name=${dirA_name%.*}
+        touch $NGINX_DIR/$dirA_name/ET.html
+        if cat $dirA/fast.log | grep -q ET; then
+            cat $dirA/fast.log | grep ET >> $NGINX_DIR/$dirA_name/ET.html
+            sed -i 's/^/<div>/' $NGINX_DIR/$dirA_name/ET.html
         else
-            cat "EMPTY" >> $NGINX_DIR/$dir_name/ET.html
+            cat "EMPTY" >> $NGINX_DIR/$dirA_name/ET.html
         fi
     done
-    for dir in "$NGINX_DIR"/*/; do
-        dir_n4me=$(basename $dir)
-        for file in $dir$dir_n4me/*; do
-            sed -i "$line" $file
+    for dirB in "$NGINX_DIR"/*/; do
+        dirB_n4me=$(basename $dirB)
+        for fileA in $dirB$dirB_n4me/*; do
+            sed -i "$line" $fileA
         done
     done
+
 }
 # __nginx_conf will configure NGINX web-server to access thru him to rita reports
 __nginx_conf () {
