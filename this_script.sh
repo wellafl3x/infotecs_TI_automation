@@ -10,6 +10,8 @@
 # paste raw suricata alerts in rita reports web pages
 # test final variant in debian, kali and ubuntu
 
+# bug - при повторном прогоне дублируется инъект сигнатур
+
 # shellcheck disable=SC1091
 source vars
 
@@ -329,6 +331,7 @@ __rita_analyze () {
                 sleep 3
             else
                 rita import $dir $db_name
+                #./sur_parser.py --database $db_name --dbhost localhost
                 rita html-report $db_name
                 cp -r $RITA_DIR/$db_name $NGINX_DIR
                 rm -r $dir
@@ -364,6 +367,9 @@ __suricata_attach () {
         dirB_n4me=$(basename $dirB)
         for fileA in $dirB$dirB_n4me/*; do
             sed -i "$line" $fileA
+            #if [[ $fileA == "long-conns.html" ]]; then
+            #    sed -i 's/Total Duration/Total Score/g' $fileA
+            #fi 
         done
     done
 

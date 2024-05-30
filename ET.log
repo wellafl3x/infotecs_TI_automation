@@ -1,0 +1,9 @@
+05/27/2024-07:36:34.794079  [**] [1:2047866:4] ET INFO Observed Google DNS over HTTPS Domain (dns .google in TLS SNI) [**] [Classification: Misc activity] [Priority: 3] {TCP} 192.168.1.15:49191 -> 8.8.8.8:443
+05/27/2024-07:36:34.819540  [**] [1:2027695:5] ET INFO Observed Cloudflare DNS over HTTPS Domain (cloudflare-dns .com in TLS SNI) [**] [Classification: Misc activity] [Priority: 3] {TCP} 192.168.1.15:49192 -> 162.159.61.3:443
+05/27/2024-07:38:11.504839  [**] [1:2028366:2] ET JA3 Hash - Possible Malware - Dridex [**] [Classification: Unknown Traffic] [Priority: 3] {TCP} 192.168.1.15:49285 -> 25.25.25.25:443
+05/27/2024-08:20:19.163946  [**] [1:2047866:4] ET INFO Observed Google DNS over HTTPS Domain (dns .google in TLS SNI) [**] [Classification: Misc activity] [Priority: 3] {TCP} 192.168.1.15:49514 -> 8.8.4.4:443
+05/27/2024-08:36:30.438424  [**] [1:2047866:4] ET INFO Observed Google DNS over HTTPS Domain (dns .google in TLS SNI) [**] [Classification: Misc activity] [Priority: 3] {TCP} 192.168.1.15:49577 -> 15.15.15.15:443
+05/27/2024-08:37:42.021851  [**] [1:2035463:3] ET INFO Observed Discord Domain (discord .com in TLS SNI) [**] [Classification: Misc activity] [Priority: 3] {TCP} 192.168.1.15:49619 -> 162.159.128.233:443
+05/27/2024-08:37:41.919319  [**] [1:2035463:3] ET INFO Observed Discord Domain (discord .com in TLS SNI) [**] [Classification: Misc activity] [Priority: 3] {TCP} 192.168.1.15:49620 -> 162.159.128.233:443
+05/27/2024-08:37:50.494190  [**] [1:2035463:3] ET INFO Observed Discord Domain (discord .com in TLS SNI) [**] [Classification: Misc activity] [Priority: 3] {TCP} 192.168.1.15:49641 -> 162.159.128.233:443
+05/27/2024-08:37:59.005600  [**] [1:2035463:3] ET INFO Observed Discord Domain (discord .com in TLS SNI) [**] [Classification: Misc activity] [Priority: 3] {TCP} 192.168.1.15:49649 -> 17.17.17.17:443
