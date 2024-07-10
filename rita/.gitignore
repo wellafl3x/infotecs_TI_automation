@@ -1,0 +1,12 @@
+/pprof
+*.pprof
+*.swp
+*\#
+*\~
+*.swp
+*.swo
+*.exe
+/.vscode/
+/rita
+/vendor/
+/rita-html-report/
