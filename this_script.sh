@@ -241,7 +241,7 @@ __rita_install () {
     sudo mkdir /etc/rita && sudo chmod 755 /etc/rita
     sudo mkdir -p /var/lib/rita/logs && sudo chmod -R 755 /var/lib/rita
     sudo chmod 777 /var/lib/rita/logs
-    sudo cp etc/rita.yaml /etc/rita/config.yaml && sudo chmod 666 /etc/rita/config.yaml
+    sudo cp ./etc/rita.yaml /etc/rita/config.yaml && sudo chmod 666 /etc/rita/config.yaml
     echo "[INFO]: Done."
     cd $qq
 }
