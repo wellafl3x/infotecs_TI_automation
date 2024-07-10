@@ -234,7 +234,7 @@ __rita_install () {
         echo 'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH'
     } >> $HOME/.bashrc
     #installing rita from src
-    git clone https://github.com/activecm/rita.git /opt/rita
+    cp -r ./rita /opt/rita
     qq=$PWD
     cd /opt/rita
     make install
