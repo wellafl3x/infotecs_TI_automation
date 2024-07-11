@@ -234,9 +234,13 @@ __rita_install () {
         echo 'export PATH=$GOPATH/bin:$GOROOT/bin:$PATH'
     } >> $HOME/.bashrc
     #installing rita from src
-    cp -r ./rita /opt/rita
+    #cp -r ./rita-legacy /opt/rita
+    git clone https://github.com/activecm/rita-legacy /opt/rita
     qq=$PWD
     cd /opt/rita
+    FILE_GO="go.mod"
+    # Замена строки "go 1.22.0" на "go 1.23"
+    sed -i 's/^go 1\.22\.0/go 1.23/' "$FILE_GO"
     make install
     sudo mkdir /etc/rita && sudo chmod 755 /etc/rita
     sudo mkdir -p /var/lib/rita/logs && sudo chmod -R 755 /var/lib/rita
@@ -259,6 +263,8 @@ __zeek_analyze () {
 }
 # __rita_analyze will create reports based on zeek logs, and make this reports accessible via 80 port
 __rita_analyze () {
+    rm $RITA_CONF_FILE
+    cp ./templates/rita/config.yaml $RITA_CONF_FILE
     qqqq=$PWD
     cd $RITA_DIR
     for dir in $ZEEK_DIR/*/; do
@@ -361,6 +367,7 @@ __varcheck () {
         ROOTDIR=$PWD
     fi
     PCAP_DIR=$ROOTDIR/PCAPS
+    RITA_DIR=$ROOTDIR/REPORTS
     if [ $WHITELIST_GEN_FLAG = "true" ]; then
         WHITELIST_FILE=$PWD/results.txt
         DOMAINS_FILE=$PWD/domains.txt

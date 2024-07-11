@@ -15,7 +15,7 @@ PATH=$PATH:/opt/zeek/bin
 # script vars - DO NOT TOUCH!
 CHANGE_CONFIG=false
 ZEEK_DIR=/tmp/ZEEK
-RITA_DIR="$ROOTDIR"/REPORTS
+RITA_DIR=""
 PCAP_DIR=""
 NGINX_DIR=/var/www/html
 RITA_CONF_FILE=/etc/rita/config.yaml
