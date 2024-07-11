@@ -224,8 +224,8 @@ __rita_install () {
     echo "[INFO]: Installing RITA..."
     #installing golang from src
     apt-get update
-    wget https://go.dev/dl/go1.20.2.linux-amd64.tar.gz
-    tar -C /usr/local/ -xvf go1.20.2.linux-amd64.tar.gz >> /dev/null
+    #wget https://go.dev/dl/go1.20.2.linux-amd64.tar.gz
+    tar -C /usr/local/ -xvf ./golang/go1.20.2.linux-amd64.tar.gz >> /dev/null
     {
         echo 'export GOROOT=/usr/local/go'
         # shellcheck disable=SC2016
@@ -263,8 +263,6 @@ __zeek_analyze () {
 }
 # __rita_analyze will create reports based on zeek logs, and make this reports accessible via 80 port
 __rita_analyze () {
-    rm $RITA_CONF_FILE
-    cp ./templates/rita/config.yaml $RITA_CONF_FILE
     qqqq=$PWD
     cd $RITA_DIR
     for dir in $ZEEK_DIR/*/; do
@@ -394,7 +392,7 @@ __varcheck () {
     read -r response
     case "$response" in
         [yY][eE][sS]|[yY]) 
-            echo "[INFO]: OK. STARTING INSTALLATION"
+            echo "[INFO]: OK. STARTING..."
             sleep 1
             ;;
         *)
@@ -480,6 +478,9 @@ if [ "$WHITELIST_GEN_FLAG" = "true" ]; then
 fi
 if [ "$CHANGE_CONFIG" = "true" ]; then
     __whitelist_attach
+else
+    rm $RITA_CONF_FILE
+    cp ./templates/rita/config.yaml $RITA_CONF_FILE
 fi
 __main
 
